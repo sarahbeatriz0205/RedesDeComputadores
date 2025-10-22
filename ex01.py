@@ -55,3 +55,5 @@ print("IP binário = ", *ipv4_binario(ip))
 # print(*binIP)
 
 
+
+
