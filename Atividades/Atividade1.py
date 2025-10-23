@@ -1,5 +1,8 @@
 class IPAdress:
     def __init__(self, ipv4, mask):
+        mask = list(map(str, mask.split(".")))
+        ipv4 = list(map(str, ipv4.split(".")))
+
         self.ipv4 = ipv4
         self.mask = mask
 
@@ -8,16 +11,16 @@ class IPAdress:
         mask = self.mascara_binaria()
         ip = self.ipv4_binario()
         for i in range(len(ip)):
-            endereco = ip[i] & mask[i]
+            endereco = int(ip[i], 2) & int(mask[i], 2)
             endereco_rede.append(endereco)
         self.rede = endereco_rede
 
-        # endereeço de broadcast
+        # endereço de broadcast
         endereco_broadcast = []
         mask = self.conversao_mascara()
         ip = self.ipv4_binario()
         for i in range(len(ip)):
-            broadcast = (ip[i] | mask[i])
+            broadcast = int(ip[i], 2) | mask[i]
             endereco_broadcast.append(broadcast)
         self.broadcast = endereco_broadcast
     
@@ -29,12 +32,11 @@ class IPAdress:
             n = int(n//2) 
         bin = bin[::-1] # inverte a string
         bin = bin.zfill(8)
-        bin = int(bin)
         return bin
     
     def ipv4_binario(self):
         binIP = []
-        for byte in self.ip:
+        for byte in self.ipv4:
             bin_endereco = self.conversao_binario(byte)
             binIP.append(bin_endereco)
         return binIP
@@ -47,34 +49,57 @@ class IPAdress:
         return binMascara
 
     def conversao_mascara(self):
-        mask = self.mascara_binaria()
-        inversao = ""
-        lista_mascara_convertida = []
-        for binarios in mask:
-            for b in binarios:
-                if b == "1":
-                    b = "0"
-                    inversao = inversao + b
+        conversao = []
+        mascara = self.mascara_binaria()
+        for octeto in mascara:
+            novo_octeto = ""
+            for bit in octeto:
+                if bit == "1":
+                    novo_octeto += "0"
                 else:
-                    b = "1"
-                    inversao = inversao + b
-            inversao = int(inversao) # convertido pra int?
-            lista_mascara_convertida.append(inversao)
-        return lista_mascara_convertida
+                    novo_octeto += "1"
+            conversao.append(int(novo_octeto, 2))
+        return conversao
+    
+    def mascara_cidr(self):
+        mask = self.mascara_binaria()
+        qtd_bits_1 = 0
+        for octeto in mask:
+            for bit in octeto:
+                if bit == "1":
+                    qtd_bits_1 += 1
+        return qtd_bits_1
+
     
     def pertence_a_rede(self, ip):
         ip = list(ip.split("."))
+        binario_recebido = []
         for octeto in ip:
-            bin_ip_recebido = self.conversao_binario(octeto)
+            binario_recebido.append(self.conversao_binario(octeto))
+        
+        binario_mascara = []
         for oc in self.mask:
-            bin_mascara = self.conversao_binario(oc)
-        for o in self.rede:
-            bin_rede = self.conversao_binario(o)
-        pertence_rede = bin_ip_recebido & bin_mascara
-        if pertence_rede == bin_rede:
+            binario_mascara.append(self.conversao_binario(oc))
+
+        pertence_rede = []
+        for i in range(4):
+            pertence_rede.append(int(binario_recebido[i], 2) & int(binario_mascara[i], 2))
+        
+        if pertence_rede == self.rede:
             return True
         else:
             return False
         
     def __str__(self):
-        return f"Endereço IP no formato CIDR: "
+        return f"Em CIDR = {self.ipv4}/{self.mascara_cidr()}"
+
+# TESTE    
+# ip = IPAdress("192.168.1.85", "255.255.255.0")
+# print(ip)
+# ip = IPAdress("192.168.1.85", "255.255.255.0")
+# print("IP:", ip.ipv4)
+# print("Máscara:", ip.mask)
+# print("Rede:", ip.rede)
+# print("Broadcast:", ip.broadcast)
+# print("192.168.1.100 pertence à rede?", ip.pertence_a_rede("192.168.1.100"))
+# print("192.168.2.1 pertence à rede?", ip.pertence_a_rede("192.168.2.1"))
