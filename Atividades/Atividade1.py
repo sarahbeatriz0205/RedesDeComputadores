@@ -1,7 +1,8 @@
-class IPAdress:
+class IPAddress:
     def __init__(self, ipv4, mask):
         mask = list(map(str, mask.split(".")))
         ipv4 = list(map(str, ipv4.split(".")))
+         
 
         self.ipv4 = ipv4
         self.mask = mask
@@ -12,8 +13,10 @@ class IPAdress:
         ip = self.ipv4_binario()
         for i in range(len(ip)):
             endereco = int(ip[i], 2) & int(mask[i], 2)
+            endereco = str(endereco)
             endereco_rede.append(endereco)
-        self.rede = endereco_rede
+        concat = endereco_rede[0] + "." + endereco_rede[1] + "." + endereco_rede[2] + "." +  endereco_rede[3]
+        self.rede = concat
 
         # endereço de broadcast
         endereco_broadcast = []
@@ -21,8 +24,10 @@ class IPAdress:
         ip = self.ipv4_binario()
         for i in range(len(ip)):
             broadcast = int(ip[i], 2) | mask[i]
+            broadcast = str(broadcast)
             endereco_broadcast.append(broadcast)
-        self.broadcast = endereco_broadcast
+        concat = endereco_broadcast[0] + "." + endereco_broadcast[1] + "." + endereco_broadcast[2] + "." + endereco_broadcast[3]
+        self.broadcast = concat
     
     def conversao_binario(self, num):
         bin = ""
@@ -85,21 +90,24 @@ class IPAdress:
         for i in range(4):
             pertence_rede.append(int(binario_recebido[i], 2) & int(binario_mascara[i], 2))
         
-        if pertence_rede == self.rede:
+        pertence_rede_novo = []
+        for rede in pertence_rede:
+            string = str(rede)
+            pertence_rede_novo.append(string)
+        concat = pertence_rede_novo[0] + "." + pertence_rede_novo[1] + "." + pertence_rede_novo[2] + "." + pertence_rede_novo[3]
+        
+        if concat == self.rede:
             return True
         else:
             return False
         
     def __str__(self):
-        return f"Em CIDR = {self.ipv4}/{self.mascara_cidr()}"
+        ipv4_str = ".".join(self.ipv4)
+        return f"Em CIDR = {ipv4_str}/{self.mascara_cidr()}"
 
-# TESTE    
-# ip = IPAdress("192.168.1.85", "255.255.255.0")
-# print(ip)
-# ip = IPAdress("192.168.1.85", "255.255.255.0")
-# print("IP:", ip.ipv4)
-# print("Máscara:", ip.mask)
-# print("Rede:", ip.rede)
-# print("Broadcast:", ip.broadcast)
-# print("192.168.1.100 pertence à rede?", ip.pertence_a_rede("192.168.1.100"))
-# print("192.168.2.1 pertence à rede?", ip.pertence_a_rede("192.168.2.1"))
+ip = IPAddress("192.168.1.10", "255.255.255.0")
+print(ip)                                # Saída esperada: "192.168.1.10/24"
+print("Endereço de rede = ", ip.rede)                  # "192.168.1.0"
+print("Endereço de broadcast = ", ip.broadcast)             # "192.168.1.255"
+print(ip.pertence_a_rede("192.168.1.55"))  # True
+print(ip.pertence_a_rede("192.168.2.1"))   # False
